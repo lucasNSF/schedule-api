@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ANONYMOUS
+  MEMBER
+  ADMIN
+}
+
+model User {
+  id                String           @id @default(uuid())
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  name              String
+  role              Role             @default(ANONYMOUS)
+  credentials       UserCredentials? @relation(fields: [userCredentialsId], references: [id])
+  userCredentialsId String?
+
+  @@map("user")
+}
+
+model UserCredentials {
+  id    String @id @default(uuid())
+  email String @unique
+  hash  String @unique
+  User  User[]
+
+  @@map("user-credentials")
+}
+
+model UserCompany {
+  id             String               @id @default(uuid())
+  companyAddress UserCompanyAddress[]
+  name           String
+  description    String?
+  workSchedule   WorkSchedule[]
+  product        CompanyProduct[]
+
+  @@map("user-company")
+}
+
+model WorkSchedule {
+  id            String       @id @default(uuid())
+  date          DateTime
+  UserCompany   UserCompany? @relation(fields: [userCompanyId], references: [id])
+  userCompanyId String?
+
+  @@map("work-schedule")
+}
+
+model CompanyProduct {
+  id            String       @id @default(uuid())
+  name          String
+  description   String?
+  price         Float
+  duration      Float?
+  UserCompany   UserCompany? @relation(fields: [userCompanyId], references: [id])
+  userCompanyId String?
+
+  @@map("company-product")
+}
+
+model UserCompanyAddress {
+  id            String      @id @default(uuid())
+  cep           String
+  number        Int?
+  address       String
+  userCompany   UserCompany @relation(fields: [userCompanyId], references: [id])
+  userCompanyId String
+
+  @@map("user-company-address")
+}
